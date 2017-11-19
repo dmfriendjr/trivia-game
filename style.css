@@ -17,3 +17,11 @@
 	background-color: lightgrey;
 	border: 2px solid black;
 }
+
+.correct-answer {
+	background-color: green;
+}
+
+.incorrect-answer {
+	background-color: red;
+}

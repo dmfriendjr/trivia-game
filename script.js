@@ -1,6 +1,7 @@
 let question;
 let answers;
 let correctAnswer;
+let correctAnswerIndex;
 let questionIndex = -1;
 let questionDisplay = document.getElementById('question-display');
 let answersDisplay = document.getElementById('answer-display');
@@ -12,6 +13,7 @@ let categoriesData;
 
 let intervalId;
 let timeLeft = 0;
+
 
 function nextQuestion() {
 	//Clear previous interval if needed
@@ -35,6 +37,8 @@ function nextQuestion() {
 		answers[answers.length-1] = answerHolder;
 	}
 
+	correctAnswerIndex = randomIndex;
+
 	//Display question and answers in the HTML
 	questionDisplay.innerHTML = question;
 	answerSlots = answersDisplay.children;
@@ -48,13 +52,14 @@ function nextQuestion() {
 		answerSlots[2].innerHTML = '';
 		answerSlots[3].innerHTML = '';
 	}
-
+	//Reset timer, update HTML, and start interval
 	timeLeft = 30;
 	timerDisplay.innerHTML = timeLeft;
 	intervalId = setInterval(questionTimer,1000);
 }
 
 function questionTimer() {
+	//Decrement time left, update display, and check if time is up
 	timeLeft--;
 	timerDisplay.innerHTML = timeLeft;
 
@@ -66,11 +71,13 @@ function questionTimer() {
 
 function checkAnswer(event) {
 	if (event.target.innerHTML === correctAnswer) {
-		console.log('That\'s right\!');
+		event.target.classList.add('correct-answer');
 	} else {
-		console.log('That\'s wrong\!');
+		event.target.classList.add('incorrect-answer');
+		answerSlots[correctAnswerIndex].classList.add('correct-answer');
 	}
-	nextQuestion();
+
+	//nextQuestion();
 }
 
 function processData(data) {
