@@ -1,0 +1,19 @@
+#categories-display {
+	max-width: 80vw;
+	text-align: center;
+	margin: 0 auto;
+}
+
+.category-option {
+	display: inline-block;
+	margin: 5px 5px;
+	background-color: lightgrey;
+	border: 2px solid black;
+	width: 16%;
+	min-height: 75px;
+}
+
+.answer-option {
+	background-color: lightgrey;
+	border: 2px solid black;
+}
