@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Title of the document</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href='style.css'>
+	<meta charset="UTF-8">
+	<title>Title of the document</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+	<link rel="stylesheet" href='style.css'>
 </head>
 
 <body>
 	<h1 class="title-text">Trivia Game</h1>
-	<div id='question-timer-display'></div>
 	<div class='question-wrapper'>
+		<div id="message-display"></div>
+		<div id='question-timer-display'></div>
 		<div id='question-display'></div>
 		<div id='answers-display'>
 			<div class="answer-option"></div>	
@@ -20,32 +22,86 @@
 		</div>
 	</div>
 	<div id="categories-display">
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
-		<div class="category-option"></div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
+		<div class="category-wrapper">
+			<p class="category-option"></p>
+		</div>
 	</div>
-
+	<div id='score-screen-wrapper'>
+		<p>Number of Correct Answers:</p>
+		<p id="correct-answers-display"></p>
+		<p>Number of Incorrect Answers:</p>
+		<p id="incorrect-answers-display"></p>
+		<input type="button" value="Restart" id="restart-button">
+	</div>
 	<script src="script.js"></script>
 </body>
 
