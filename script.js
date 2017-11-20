@@ -78,18 +78,29 @@ class TriviaGame {
 		questionsData = JSON.parse(questionsData).results;
 		//Iterate over questions data and make a new TriviaQuestion for each question in the daa
 		for(let i = 0; i < questionsData.length; i++) {
-			//Add correct answer to incorrect answers array, shuffle, and store index of correct answer
+			//Add correct answer to incorrect answers array
 			let answersArray = questionsData[i].incorrect_answers;
 			answersArray.push(questionsData[i].correct_answer);
-			let correctAnswerIndex = Math.floor(Math.random() * answersArray.length);
-			
-			//Check if random index was last index or question is true/false, meaning we don't need to swap
-			if (correctAnswerIndex !== answersArray.length-1 || answersArray.length == 2){
-				let answerHolder = answersArray[correctAnswerIndex];
-				//Swap correct answer (at last index because of push) with random index
-				answersArray[correctAnswerIndex] = answersArray[answersArray.length-1];
-				answersArray[answersArray.length-1] = answerHolder;
+			let correctAnswerIndex;
+			if (answersArray.length === 2) {
+				//This question is a true or false, need to do special handling so order doesn't give away answer
+				answersArray[0] = 'True';
+				answersArray[1] = 'False';
+				console.log(questionsData[i].correct_answer);
+				correctAnswerIndex = questionsData[i].correct_answer === 'True' ? 0 : 1;
 			}
+			else {
+				//Randomize position of correct answer in the answers array and store the location of answer
+				correctAnswerIndex = Math.floor(Math.random() * answersArray.length);
+				//Check if random index was last index, meaing we don't need to swap
+				if (correctAnswerIndex !== answersArray.length-1){
+					let answerHolder = answersArray[correctAnswerIndex];
+					//Swap correct answer (at last index because of push) with random index
+					answersArray[correctAnswerIndex] = answersArray[answersArray.length-1];
+					answersArray[answersArray.length-1] = answerHolder;
+				}
+			}
+
 
 			//Add newly instantiated trivia question object to questions array	
 			this.questionsList.push(new TriviaQuestion(questionsData[i].question,
@@ -154,8 +165,8 @@ class TriviaGame {
 			this.answerSlots[3].style.display = 'none';
 		} else {
 			//Ensure they are displayed otherwise
-			this.answerSlots[2].style.display = 'block';
-			this.answerSlots[3].style.display = 'block';
+			this.answerSlots[2].style.display = 'inline-block';
+			this.answerSlots[3].style.display = 'inline-block';
 		}
 	}
 

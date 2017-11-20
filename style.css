@@ -1,5 +1,9 @@
 body {
 	font-family: 'Lato', sans-serif;
+	/*background: url('./assets/images/question-marks-background.jpg');*/
+	/*background-repeat: repeat;*/
+	background: #0D677F;
+	color:  #99B0D7;
 }
 
 .title-text {
@@ -14,13 +18,14 @@ body {
 
 .category-wrapper {
 	display: inline-block;
-	background-color: lightgrey;
 	margin: 5px 5px;
-	border: 3px solid black;
+	border: 3px solid #073440;
 	width: 20%;
 	height: 75px;
 	vertical-align: top;
-	font-size: 20px;
+	font-size: 20px;	
+	background-color: #3BE8E8;
+	color: black;
 }
 
 .question-wrapper {
@@ -36,21 +41,32 @@ body {
 	min-height: 30px;
 }
 
+#question-display {
+	width: fit-content;
+	margin: 0 auto;
+	padding: 15px 15px;
+	color: #99B0D7;
+	font-size: 25px;
+}
+
 .answer-option {
-	background-color: lightgrey;
-	border: 3px solid black;
+	display: inline-block;
+	border: 3px solid #073440;
 	text-align: center;
-	width: 30%;
+	width: 40%;
 	margin: 10px auto;
-	padding: 5px 0;
+	padding: 10px 0;
+	background-color: #3BE8E8;
+	font-size: 20px;
+	color: black;
 }
 
 .correct-answer {
-	background-color: #97ff5b;
+	background-color: #46FF53 !important;
 }
 
 .incorrect-answer {
-	background-color: red;
+	background-color: #FF4E42 !important;
 }
 
 #score-screen-wrapper {
