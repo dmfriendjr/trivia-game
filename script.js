@@ -20,13 +20,12 @@ class TriviaGame {
 		this.categoriesContainer = $('#categories-wrapper');
 		this.loadingScreenContainer = $('#loading-screen');
 		this.messageDisplay = $('#message-display');
-		this.questionTimerDisplay = document.getElementById('question-timer-display');
+		this.questionTimerDisplay = $('#question-timer-display');
 		this.questionDisplay = $('#question-display');
 		this.answerSlots = $('.answer-option');
-		this.categoryOptionsDisplay = document.getElementsByClassName('category-option');
 		this.scoreScreenDisplay = $('#score-screen-wrapper');
-		this.correctAnswersDisplay = document.getElementById('correct-answers-display');
-		this.incorrectAnswersDisplay = document.getElementById('incorrect-answers-display');
+		this.correctAnswersDisplay = $('#correct-answers-display');
+		this.incorrectAnswersDisplay = $('#incorrect-answers-display');
 		this.questionTimerInterval;
 		this.questionTimer = 0;
 		this.numberIncorrectAnswers = 0;
@@ -124,7 +123,7 @@ class TriviaGame {
 				//Store categoryId for later use in questions data request
 				"data-category-id": category.id,
 				//Fill div with content
-				text: category.name,
+				text: category.name.indexOf(':') === -1 ? category.name : category.name.split(': ')[1],
 				click: (event) => {
 					//On click, request questions data
 					this.requestQuestionsData(event.target.dataset.categoryId);
@@ -241,9 +240,9 @@ class TriviaGame {
 			//do a small delay then advance to next question and reset answer styles
 			this.nextQuestionTimerStart();
 		} else {
-			//No questions left, hide questions, clear interval, display score
+			//No questions left, clear question interval, update game state after delay
 			clearInterval(this.questionTimerInterval);
-			setTimeout(this.updateGameState.bind(this,'scoreScreenPhase'),3000);
+			setTimeout(this.updateGameState.bind(this,'scoreScreenPhase'),2000);
 		}
 	}
 
@@ -270,7 +269,7 @@ class TriviaGame {
 
 	updateQuestionTimer() {
 		this.questionTimer--;
-		this.questionTimerDisplay.innerHTML = this.questionTimer;
+		this.questionTimerDisplay.text(this.questionTimer);
 		if (this.questionTimer <= 0) {
 			//Times up, move to next question
 			this.questionTimeElapsed();
