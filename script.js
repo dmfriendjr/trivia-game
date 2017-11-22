@@ -20,9 +20,9 @@ class TriviaGame {
 		this.questionContainer = document.getElementsByClassName('question-wrapper')[0];
 		this.messageDisplay = document.getElementById('message-display');
 		this.questionTimerDisplay = document.getElementById('question-timer-display');
-		this.questionDisplay = document.getElementById('question-display');
-		this.answerSlots = document.getElementById('answers-display').children;
-		this.categoriesDisplay = document.getElementById('categories-display');
+		this.questionDisplay = $('#question-display');
+		this.answerSlots = $('.answer-option');
+		this.categoriesDisplay = $('#categories-display');
 		this.categoryOptionsDisplay = document.getElementsByClassName('category-option');
 		this.scoreScreenDisplay = document.getElementById('score-screen-wrapper');
 		this.correctAnswersDisplay = document.getElementById('correct-answers-display');
@@ -35,32 +35,23 @@ class TriviaGame {
 
 	initialize() {
 		//Add event listeners to answer slots
-		for (let i = 0; i < this.answerSlots.length; i++)
-		{
-			this.answerSlots[i].addEventListener('click', this.checkAnswer.bind(this));
+		console.log('Initializing');
+		for (let i = 0; i < this.answerSlots.length; i++){
+			$(this.answerSlots[i]).on('click',this.checkAnswer.bind(this));
 		}
 		//Add event listeners to category slots
-		let categoryBoxes = document.getElementsByClassName('category-wrapper');
-		for (let i = 0; i < categoryBoxes.length; i++)
-		{
-			categoryBoxes[i].addEventListener('click',this.chooseCategory.bind(this));
-		}
 		//Add event listener to restart button
-		document.getElementById('restart-button').addEventListener('click', this.resetGame.bind(this));
+		$('#restart-button').on('click', this.resetGame.bind(this));
 		//Begin categories http request
 		this.requestCategoriesData();
 	}
 	
 	//This uses an async operation to request and wait for response from requested url
-	httpGetAsync(theUrl, callback)
-	{
-	    var xmlHttp = new XMLHttpRequest();
-	    xmlHttp.onreadystatechange = function() { 
-		if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-		    callback(xmlHttp.responseText);
-	    }
-	    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
-	    xmlHttp.send(null);
+	httpGetAsync(theUrl, callback){
+		$.ajax({
+			url: theUrl,
+			method: "GET"
+		}).done(callback);	
 	}
 	
 	//Request async the questions data and process response when ready
@@ -70,12 +61,18 @@ class TriviaGame {
 	
 	//Request async the categories data and process response when ready
 	requestCategoriesData() {
-		this.httpGetAsync('https://opentdb.com/api_category.php', this.processCategories.bind(this));
+		console.log('Requesting data');
+		this.httpGetAsync('https://opentdb.com/api_category.php', (response) => 
+		{		
+			this.categoriesList = response.trivia_categories;
+			console.log('Got response');
+			this.populateCategories();
+		});
 	}
 
 	populateQuestions(questionsData) {
 		//Parse JSON response and grab results array
-		questionsData = JSON.parse(questionsData).results;
+		questionsData = questionsData.results;
 		//Iterate over questions data and make a new TriviaQuestion for each question in the daa
 		for(let i = 0; i < questionsData.length; i++) {
 			//Add correct answer to incorrect answers array
@@ -86,7 +83,6 @@ class TriviaGame {
 				//This question is a true or false, need to do special handling so order doesn't give away answer
 				answersArray[0] = 'True';
 				answersArray[1] = 'False';
-				console.log(questionsData[i].correct_answer);
 				correctAnswerIndex = questionsData[i].correct_answer === 'True' ? 0 : 1;
 			}
 			else {
@@ -112,32 +108,56 @@ class TriviaGame {
 		this.nextQuestion();
 	}
 
-	//Parse recieved data and display categories so user can pick one
-	processCategories(categoriesData) {
-		this.categoriesList = JSON.parse(categoriesData).trivia_categories;
-		this.displayCategories();
+	//Display a category in each category slot for data recieved
+	populateCategories() {
+		//Display categories display wrapper
+		this.toggleCategoriesDisplay(true);
+		//Get children and fill with each category
+		for (let i = 0; i < this.categoriesList.length; i++) {
+			//Create wrapper
+			let categoryWrapper = $('<div>', {
+				"class": 'category-wrapper',
+				click: (event) => {
+					//On click, request questions data and toggle categories display off
+					this.requestQuestionsData(event.target.dataset.categoryId);
+					this.toggleCategoriesDisplay(false);
+				}
+			});
+
+			//Create category option content
+			let categoryOption = $('<p>', {
+				"class": 'category-option',
+				"data-category-id": this.categoriesList[i].id,
+				//Fill div with content
+				text: this.categoriesList[i].name
+			});
+			//Append content to wrapper, and wrapper to display 
+			categoryWrapper.append(categoryOption);
+			this.categoriesDisplay.append(categoryWrapper);
+		}
 	}
 
-	//Display a category in each category slot (This would break if more categories returned than expected should be dynamic)
-	displayCategories() {
-		//Display categories display wrapper
-		this.categoriesDisplay.style.display = 'block';
-		//Get children and fill with each category
-		for (let i = 0; i < this.categoryOptionsDisplay.length; i++) {
-			this.categoryOptionsDisplay[i].innerHTML = this.categoriesList[i].name;
+	toggleCategoriesDisplay(doDisplay) {
+		if (doDisplay) {
+			this.categoriesDisplay.show();
+		} else {
+			this.categoriesDisplay.hide();
+		}
+	}
+
+	toggleQuestionsDisplay(doDisplay) {
+		if (doDisplay) {
+			this.questionDisplay.show();
+		} else {
+			this.questionDisplay.hide();
 		}
 	}
 
 	chooseCategory(event) {
-		let categoryChoice = event.target.innerHTML;
-		//Find id related to chosen category
-		for (let i = 0; i < this.categoriesList.length; i++) {
-			if (this.categoriesList[i].name == categoryChoice) {
-				this.categoriesDisplay.style.display = "none";
-				this.requestQuestionsData(this.categoriesList[i].id);
-				break;
-			}
-		}
+		//Request questions data
+		this.requestQuestionsData(event.target.dataset.categoryId);
+		//Toggle category display
+		this.toggleCategoriesDisplay(false);
 	}
 
 	nextQuestion() {
@@ -154,7 +174,8 @@ class TriviaGame {
 		//Reset win/lost/times up message
 		this.updateMessageDisplay('');
 		//Populate HTML
-		this.questionDisplay.innerHTML = currentQuestion.question;
+		this.questionDisplay.html(currentQuestion.question);
+
 		for (let i = 0; i <  currentQuestion.answers.length; i++)
 		{
 			this.answerSlots[i].innerHTML = currentQuestion.answers[i];
@@ -254,7 +275,7 @@ class TriviaGame {
 		//Hide score screen container
 		this.scoreScreenDisplay.style.display = 'none';
 		//Display category choices
-		this.displayCategories();
+		this.toggleCategoriesDisplay(true);
 	}
 } 
 
