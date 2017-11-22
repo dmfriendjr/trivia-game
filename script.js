@@ -169,8 +169,8 @@ class TriviaGame {
 				//Hide question, display score screen
 				this.toggleElementDisplay(this.questionContainer, false);
 				this.toggleElementDisplay(this.scoreScreenDisplay, true);
-				this.correctAnswersDisplay.innerHTML = this.numberCorrectAnswers;
-				this.incorrectAnswersDisplay.innerHTML = this.numberIncorrectAnswers;
+				this.correctAnswersDisplay.text(this.numberCorrectAnswers);
+				this.incorrectAnswersDisplay.text(this.numberIncorrectAnswers);
 				break;
 		}
 	}

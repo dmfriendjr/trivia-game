@@ -47,6 +47,10 @@ body {
 	min-height: 30px;
 }
 
+#question-timer-display {
+	font-size: 30px;
+}
+
 #question-display {
 	width: fit-content;
 	margin: 0 auto;
