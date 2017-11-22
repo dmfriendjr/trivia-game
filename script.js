@@ -191,7 +191,7 @@ class TriviaGame {
 		this.answerPicked = false;
 		//Reset timer and start countdown
 		this.questionTimer = 30;
-		this.questionTimerDisplay.innerHTML = this.questionTimer;	
+		this.questionTimerDisplay.html(this.questionTimer);	
 		this.questionTimerInterval = setInterval(this.updateQuestionTimer.bind(this),1000);
 		//Get current question
 		let currentQuestion = this.questionsList[this.questionIndex];
@@ -206,12 +206,12 @@ class TriviaGame {
 		}
 		//Check if question is a true/false, need to clear 3rd and 4th slots if so
 		if (currentQuestion.answers.length < 4) {
-			this.answerSlots[2].style.display = 'none'
-			this.answerSlots[3].style.display = 'none';
+			$(this.answerSlots[2]).hide();
+			$(this.answerSlots[3]).hide();
 		} else {
 			//Ensure they are displayed otherwise
-			this.answerSlots[2].style.display = 'inline-block';
-			this.answerSlots[3].style.display = 'inline-block';
+			$(this.answerSlots[2]).show();
+			$(this.answerSlots[3]).show();
 		}
 	}
 
@@ -255,7 +255,7 @@ class TriviaGame {
 	nextQuestionTimerStart() { 
 		//Clear question timer interval
 		clearInterval(this.questionTimerInterval);
-		//Give 3 seconds before resetting answer styling and going to next question
+		//Give 2 seconds before resetting answer styling and going to next question
 		setTimeout(this.resetAnswerStyles.bind(this), 2000);
 		setTimeout(this.nextQuestion.bind(this), 2000);
 	}
