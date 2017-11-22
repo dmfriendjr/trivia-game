@@ -1,12 +1,15 @@
 class TriviaQuestion {
 	constructor(question,incorrectAnswers,correctAnswer) {
 		this.question = question;
+		//this.answers will hold correctAnswer after processing in randomizeAnswerLocation
 		this.answers = incorrectAnswers;
 		this.correctAnswer = correctAnswer;
+		console.log(this.correctAnswer);
 		this.correctAnswerIndex;
 		this.randomizeAnswerLocation();	
 	}
 
+	//Randomizes location of correct answer in array
 	randomizeAnswerLocation() {
 		//Add correct answer to answers array
 		this.answers.push(this.correctAnswer);	
@@ -30,17 +33,20 @@ class TriviaQuestion {
 		
 	}
 
+	//Returns string of correct answer
 	get getCorrectAnswer() {
-		return this.answers[this.correctAnswerIndex];
+		return this.correctAnswer;
 	}
 }
 
 
 class TriviaGame {
 	constructor() {
+		//Storage for questions received
 		this.questionsList = [];
 		this.questionIndex = -1;
 		this.answerPicked = false;
+		//Stores HTML elements needed by game
 		this.questionContainer = $('.question-wrapper');
 		this.categoriesContainer = $('#categories-wrapper');
 		this.loadingScreenContainer = $('#loading-screen');
@@ -51,13 +57,17 @@ class TriviaGame {
 		this.scoreScreenDisplay = $('#score-screen-wrapper');
 		this.correctAnswersDisplay = $('#correct-answers-display');
 		this.incorrectAnswersDisplay = $('#incorrect-answers-display');
+		//Used to store interval for question timer
 		this.questionTimerInterval;
 		this.questionTimer = 0;
+		//Score data storage
 		this.numberIncorrectAnswers = 0;
 		this.numberCorrectAnswers = 0;
+		//Initialize game
 		this.initialize();
 	}
 
+	//Adds event listeners to static HTML and begins HTTP request for categories
 	initialize() {
 		//Add event listeners to answer slots
 		for (let i = 0; i < this.answerSlots.length; i++){
@@ -96,6 +106,7 @@ class TriviaGame {
 		});
 	}
 
+	//Callback for requestQuestionsData to generate TriviaQuestions from data
 	populateQuestions(questionsData) {
 		//Iterate over questions data and make a new TriviaQuestion for each question in the data
 		$.each(questionsData, (index, question) => {
@@ -108,7 +119,7 @@ class TriviaGame {
 		this.updateGameState('questionPhase');
 	}
 
-	//Display a category in each category slot for data recieved
+	//Callback for requestCategoriesData to generate HTML displays for each category in data
 	populateCategories(categoriesData) {
 		//Create display box for each category in categoriesData
 		$.each(categoriesData, (index, category) => 
@@ -147,6 +158,7 @@ class TriviaGame {
 		this.updateGameState('chooseCategoryPhase');
 	}
 
+	//Used whenever state changes to display correct HTML elements
 	updateGameState(newState) {
 		switch(newState) {
 			case 'loadingPhase':
@@ -182,6 +194,7 @@ class TriviaGame {
 		}
 	}
 
+	//Shows/hides element given in parameters
 	toggleElementDisplay(element, doDisplay) {
 		if (doDisplay) {
 			element.show();
@@ -191,6 +204,40 @@ class TriviaGame {
 		}
 	}
 
+	//Callback for answer slot click, checks answer validity
+	checkAnswer(event) {
+		//User has picked answer already, don't want to process the input
+		if (this.answerPicked) {
+			return; 	
+		}
+
+		if (event.target.innerHTML === this.questionsList[this.questionIndex].getCorrectAnswer) {
+			event.target.classList.add('correct-answer');
+			this.updateMessageDisplay('That\'s Correct!');
+			this.numberCorrectAnswers++;
+		} else {
+			event.target.classList.add('incorrect-answer');
+			this.updateMessageDisplay('Wrong!');
+			this.answerSlots[this.questionsList[this.questionIndex].correctAnswerIndex].classList.add('correct-answer');
+			this.numberIncorrectAnswers++;
+		}
+
+
+		//Answer has been clicked 
+		this.answerPicked = true;
+		//Determine if we want to advance to the next question (ie there are questions left)
+		//Have to do length-1 here since questionsIndex gets incremented by nextQuestion()
+		if (this.questionIndex < this.questionsList.length-1){	
+			//do a small delay then advance to next question and reset answer styles
+			this.nextQuestionTimerStart();
+		} else {
+			//No questions left, clear question interval, update game state after delay
+			clearInterval(this.questionTimerInterval);
+			setTimeout(this.updateGameState.bind(this,'scoreScreenPhase'),2000);
+		}
+	}	
+	
+	//Advances question index and displays next question content in HTML
 	nextQuestion() {
 		//Advance to next question
 		this.questionIndex++;
@@ -222,52 +269,23 @@ class TriviaGame {
 		}
 	}
 
-	checkAnswer(event) {
-		//User has picked answer already, don't want to process the input
-		if (this.answerPicked) {
-			return; 	
-		}
-
-		if (event.target.innerHTML === this.questionsList[this.questionIndex].getCorrectAnswer) {
-			event.target.classList.add('correct-answer');
-			this.updateMessageDisplay('That\'s Correct!');
-			this.numberCorrectAnswers++;
-		} else {
-			event.target.classList.add('incorrect-answer');
-			this.updateMessageDisplay('Wrong!');
-			this.answerSlots[this.questionsList[this.questionIndex].correctAnswerIndex].classList.add('correct-answer');
-			this.numberIncorrectAnswers++;
-		}
-
-
-		//Answer has been clicked 
-		this.answerPicked = true;
-		//Determine if we want to advance to the next question (ie there are questions left)
-		//Have to do length-1 here since questionsIndex gets incremented by nextQuestion()
-		if (this.questionIndex < this.questionsList.length-1){	
-			//do a small delay then advance to next question and reset answer styles
-			this.nextQuestionTimerStart();
-		} else {
-			//No questions left, clear question interval, update game state after delay
-			clearInterval(this.questionTimerInterval);
-			setTimeout(this.updateGameState.bind(this,'scoreScreenPhase'),2000);
-		}
-	}
-
-	questionTimeElapsed() {
-		this.updateMessageDisplay('Time\'s Up!');
-		this.answerSlots[this.questionsList[this.questionIndex].correctAnswerIndex].classList.add('correct-answer');
-		this.nextQuestionTimerStart();
-	}
-
+	//Starts timer interval for question time limit
 	nextQuestionTimerStart() { 
 		//Clear question timer interval
 		clearInterval(this.questionTimerInterval);
 		//Give 2 seconds before resetting answer styling and going to next question
 		setTimeout(this.resetAnswerStyles.bind(this), 2000);
 		setTimeout(this.nextQuestion.bind(this), 2000);
+	}	
+
+	//Called when question timer ends. Shows correct answer and goes to next question
+	questionTimeElapsed() {
+		this.updateMessageDisplay('Time\'s Up!');
+		this.answerSlots[this.questionsList[this.questionIndex].correctAnswerIndex].classList.add('correct-answer');
+		this.nextQuestionTimerStart();
 	}
 
+	//Removes CSS styles from all answer slots for correct/incorrect answers
 	resetAnswerStyles() {
 		$.each(this.answerSlots, (index, slot) => {
 			$(slot).removeClass('correct-answer');
@@ -275,6 +293,7 @@ class TriviaGame {
 		});
 	}
 
+	//Callback for question timer interval, updates time and checks if time up
 	updateQuestionTimer() {
 		this.questionTimer--;
 		this.questionTimerDisplay.text(this.questionTimer);
@@ -284,10 +303,12 @@ class TriviaGame {
 		}
 	}
 
+	//Updates displayed message, used for win/loss/time up conditions
 	updateMessageDisplay(message) {
 		this.messageDisplay.html(message);
 	}
 
+	//Resets game for next 'round'
 	resetGame() {
 		//Reset variables
 		this.questionIndex = -1;
