@@ -8,6 +8,8 @@ body {
 
 .title-text {
 	text-align: center;
+	margin: 25px 0;
+	font-size: 30px;
 }
 
 #loading-screen, 
@@ -25,12 +27,23 @@ body {
 	display: inline-block;
 	margin: 5px 5px;
 	border: 3px solid #073440;
+	vertical-align: top;
 	width: 125px;
 	height: 100px;
-	vertical-align: top;
 	font-size: 20px;	
 	background-color: #3BE8E8;
 	color: black;
+}
+
+.category-option-pusher {
+	display: inline-block;
+	vertical-align: middle;
+	height: 100px;
+}
+
+.category-option {
+	vertical-align: middle;
+	display: inline-block;	
 }
 
 #message-display {
@@ -68,6 +81,11 @@ body {
 
 .incorrect-answer {
 	background-color: #FF4E42 !important;
+}
+
+#restart-button {
+	background-color: #46FF53;
+	border: 2px solid black;
 }
 
 
