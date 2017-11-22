@@ -10,7 +10,13 @@ body {
 	text-align: center;
 }
 
-#categories-display {
+#loading-screen {
+	max-width: 80vw;
+	text-align: center;
+	margin: 0 auto;
+}
+
+#categories-wrapper {
 	max-width: 80vw;
 	text-align: center;
 	margin: 0 auto;

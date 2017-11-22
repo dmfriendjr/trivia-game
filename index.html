@@ -4,6 +4,7 @@
 	<meta charset="UTF-8">
 	<title>Title of the document</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://use.fontawesome.com/3c1dfe0d47.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
 	<link rel="stylesheet" href='style.css'>
@@ -11,6 +12,10 @@
 
 <body>
 	<h1 class="title-text">Trivia Game</h1>
+	<div id="loading-screen">
+		<h2>Loading</h2>
+		<i class="fa fa-spinner fa-pulse fa-5x" aria-hidden="true"></i>
+	</div>
 	<div class='question-wrapper'>
 		<div id="message-display"></div>
 		<div id='question-timer-display'></div>
@@ -22,7 +27,7 @@
 			<div class="answer-option"></div>	
 		</div>
 	</div>
-	<div id="categories-display">
+	<div id="categories-wrapper">
 
 	</div>
 	<div id='score-screen-wrapper'>

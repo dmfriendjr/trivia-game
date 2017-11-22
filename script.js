@@ -16,21 +16,22 @@ class TriviaGame {
 		this.questionsList = [];
 		this.questionIndex = -1;
 		this.answerPicked = false;
-		this.categoriesList = [];
-		this.questionContainer = document.getElementsByClassName('question-wrapper')[0];
-		this.messageDisplay = document.getElementById('message-display');
+		this.questionContainer = $('.question-wrapper');
+		this.categoriesContainer = $('#categories-wrapper');
+		this.loadingScreenContainer = $('#loading-screen');
+		this.messageDisplay = $('#message-display');
 		this.questionTimerDisplay = document.getElementById('question-timer-display');
 		this.questionDisplay = $('#question-display');
 		this.answerSlots = $('.answer-option');
-		this.categoriesDisplay = $('#categories-display');
 		this.categoryOptionsDisplay = document.getElementsByClassName('category-option');
-		this.scoreScreenDisplay = document.getElementById('score-screen-wrapper');
+		this.scoreScreenDisplay = $('#score-screen-wrapper');
 		this.correctAnswersDisplay = document.getElementById('correct-answers-display');
 		this.incorrectAnswersDisplay = document.getElementById('incorrect-answers-display');
 		this.questionTimerInterval;
 		this.questionTimer = 0;
 		this.numberIncorrectAnswers = 0;
 		this.numberCorrectAnswers = 0;
+		this.initialize();
 	}
 
 	initialize() {
@@ -39,11 +40,12 @@ class TriviaGame {
 		for (let i = 0; i < this.answerSlots.length; i++){
 			$(this.answerSlots[i]).on('click',this.checkAnswer.bind(this));
 		}
-		//Add event listeners to category slots
 		//Add event listener to restart button
 		$('#restart-button').on('click', this.resetGame.bind(this));
 		//Begin categories http request
 		this.requestCategoriesData();
+		//Show loading screen
+		this.updateGameState('loadingPhase');
 	}
 	
 	//This uses an async operation to request and wait for response from requested url
@@ -56,34 +58,33 @@ class TriviaGame {
 	
 	//Request async the questions data and process response when ready
 	requestQuestionsData(categoryId) {
-		this.httpGetAsync(`https://opentdb.com/api.php?amount=10&category=${categoryId}`, this.populateQuestions.bind(this));
+		this.httpGetAsync(`https://opentdb.com/api.php?amount=10&category=${categoryId}`, (response) => {
+			let questionsData = response.results;
+			this.populateQuestions(questionsData);
+		}); 
 	}
 	
 	//Request async the categories data and process response when ready
 	requestCategoriesData() {
-		console.log('Requesting data');
 		this.httpGetAsync('https://opentdb.com/api_category.php', (response) => 
 		{		
-			this.categoriesList = response.trivia_categories;
-			console.log('Got response');
-			this.populateCategories();
+			let categoriesData = response.trivia_categories;
+			this.populateCategories(categoriesData);
 		});
 	}
 
 	populateQuestions(questionsData) {
-		//Parse JSON response and grab results array
-		questionsData = questionsData.results;
-		//Iterate over questions data and make a new TriviaQuestion for each question in the daa
-		for(let i = 0; i < questionsData.length; i++) {
+		//Iterate over questions data and make a new TriviaQuestion for each question in the data
+		$.each(questionsData, (index, question) => {
 			//Add correct answer to incorrect answers array
-			let answersArray = questionsData[i].incorrect_answers;
-			answersArray.push(questionsData[i].correct_answer);
+			let answersArray = question.incorrect_answers;
+			answersArray.push(question.correct_answer);
 			let correctAnswerIndex;
 			if (answersArray.length === 2) {
 				//This question is a true or false, need to do special handling so order doesn't give away answer
 				answersArray[0] = 'True';
 				answersArray[1] = 'False';
-				correctAnswerIndex = questionsData[i].correct_answer === 'True' ? 0 : 1;
+				correctAnswerIndex = question.correct_answer === 'True' ? 0 : 1;
 			}
 			else {
 				//Randomize position of correct answer in the answers array and store the location of answer
@@ -99,65 +100,89 @@ class TriviaGame {
 
 
 			//Add newly instantiated trivia question object to questions array	
-			this.questionsList.push(new TriviaQuestion(questionsData[i].question,
-				answersArray,correctAnswerIndex));	
-		}	
-		//Display question container on HTML
-		this.questionContainer.style.display = 'block';
-		//Display first question
-		this.nextQuestion();
+			this.questionsList.push(new TriviaQuestion(question.question,
+				answersArray,correctAnswerIndex));				
+		});
+
+		//Now in the questionPhase
+		this.updateGameState('questionPhase');
 	}
 
 	//Display a category in each category slot for data recieved
-	populateCategories() {
-		//Display categories display wrapper
-		this.toggleCategoriesDisplay(true);
-		//Get children and fill with each category
-		for (let i = 0; i < this.categoriesList.length; i++) {
+	populateCategories(categoriesData) {
+		//Create display box for each category in categoriesData
+		$.each(categoriesData, (index, category) => 
+		{
 			//Create wrapper
 			let categoryWrapper = $('<div>', {
 				"class": 'category-wrapper',
-				click: (event) => {
-					//On click, request questions data and toggle categories display off
-					this.requestQuestionsData(event.target.dataset.categoryId);
-					this.toggleCategoriesDisplay(false);
-				}
 			});
 
 			//Create category option content
 			let categoryOption = $('<p>', {
 				"class": 'category-option',
-				"data-category-id": this.categoriesList[i].id,
+				//Store categoryId for later use in questions data request
+				"data-category-id": category.id,
 				//Fill div with content
-				text: this.categoriesList[i].name
+				text: category.name,
+				click: (event) => {
+					//On click, request questions data
+					this.requestQuestionsData(event.target.dataset.categoryId);
+					//Show loading screen
+					this.updateGameState('loadingPhase');
+				}
 			});
 			//Append content to wrapper, and wrapper to display 
 			categoryWrapper.append(categoryOption);
-			this.categoriesDisplay.append(categoryWrapper);
+			this.categoriesContainer.append(categoryWrapper);
+		});
+
+		//Now in the chooseCategoryPhase
+		this.updateGameState('chooseCategoryPhase');
+	}
+
+	updateGameState(newState) {
+		switch(newState) {
+			case 'loadingPhase':
+				//Hide all elements
+				this.toggleElementDisplay(this.categoriesContainer,false);
+				this.toggleElementDisplay(this.questionContainer,false);
+				this.toggleElementDisplay(this.scoreScreenDisplay,false);
+				//Display loading screen
+				this.toggleElementDisplay(this.loadingScreenContainer, true);
+				break;
+			case 'chooseCategoryPhase':
+				//Hide question and score container and loading screen, display categories container
+				this.toggleElementDisplay(this.loadingScreenContainer, false);
+				this.toggleElementDisplay(this.categoriesContainer,true);
+				this.toggleElementDisplay(this.questionContainer,false);
+				this.toggleElementDisplay(this.scoreScreenDisplay,false);
+				break;
+			case 'questionPhase':
+				//Hide categories and loading screen, display question container
+				this.toggleElementDisplay(this.loadingScreenContainer, false);
+				this.toggleElementDisplay(this.categoriesContainer,false);
+				this.toggleElementDisplay(this.questionContainer,true);
+				//Activate first question
+				this.nextQuestion();
+				break;
+			case 'scoreScreenPhase':
+				//Hide question, display score screen
+				this.toggleElementDisplay(this.questionContainer, false);
+				this.toggleElementDisplay(this.scoreScreenDisplay, true);
+				this.correctAnswersDisplay.innerHTML = this.numberCorrectAnswers;
+				this.incorrectAnswersDisplay.innerHTML = this.numberIncorrectAnswers;
+				break;
 		}
 	}
 
-	toggleCategoriesDisplay(doDisplay) {
+	toggleElementDisplay(element, doDisplay) {
 		if (doDisplay) {
-			this.categoriesDisplay.show();
-		} else {
-			this.categoriesDisplay.hide();
+			element.show();
 		}
-	}
-
-	toggleQuestionsDisplay(doDisplay) {
-		if (doDisplay) {
-			this.questionDisplay.show();
-		} else {
-			this.questionDisplay.hide();
+		else {
+			element.hide();
 		}
-	}
-
-	chooseCategory(event) {
-		//Request questions data
-		this.requestQuestionsData(event.target.dataset.categoryId);
-		//Toggle category display
-		this.toggleCategoriesDisplay(false);
 	}
 
 	nextQuestion() {
@@ -218,7 +243,7 @@ class TriviaGame {
 		} else {
 			//No questions left, hide questions, clear interval, display score
 			clearInterval(this.questionTimerInterval);
-			setTimeout(this.displayScoreScreen.bind(this),3000);
+			setTimeout(this.updateGameState.bind(this,'scoreScreenPhase'),3000);
 		}
 	}
 
@@ -232,15 +257,15 @@ class TriviaGame {
 		//Clear question timer interval
 		clearInterval(this.questionTimerInterval);
 		//Give 3 seconds before resetting answer styling and going to next question
-		setTimeout(this.resetAnswerStyles.bind(this), 3000);
-		setTimeout(this.nextQuestion.bind(this), 3000);
+		setTimeout(this.resetAnswerStyles.bind(this), 2000);
+		setTimeout(this.nextQuestion.bind(this), 2000);
 	}
 
 	resetAnswerStyles() {
-		for (let i = 0; i < this.answerSlots.length; i++) {
-			this.answerSlots[i].classList.remove('correct-answer');
-			this.answerSlots[i].classList.remove('incorrect-answer');
-		}
+		$.each(this.answerSlots, (index, slot) => {
+			$(slot).removeClass('correct-answer');
+			$(slot).removeClass('incorrect-answer');
+		});
 	}
 
 	updateQuestionTimer() {
@@ -253,15 +278,7 @@ class TriviaGame {
 	}
 
 	updateMessageDisplay(message) {
-		this.messageDisplay.innerHTML = message;
-	}
-
-	displayScoreScreen() {
-		//Hide question container and show score screen
-		this.questionContainer.style.display = 'none';
-		this.scoreScreenDisplay.style.display = 'block';
-		this.correctAnswersDisplay.innerHTML = this.numberCorrectAnswers;
-		this.incorrectAnswersDisplay.innerHTML = this.numberIncorrectAnswers;
+		this.messageDisplay.html(message);
 	}
 
 	resetGame() {
@@ -272,12 +289,9 @@ class TriviaGame {
 		this.numberCorrectAnswers = 0;
 		this.numberIncorrectAnswers = 0;
 		this.resetAnswerStyles();
-		//Hide score screen container
-		this.scoreScreenDisplay.style.display = 'none';
-		//Display category choices
-		this.toggleCategoriesDisplay(true);
+		//Now in the chooseCategoryPhase again
+		this.updateGameState('chooseCategoryPhase');
 	}
 } 
 
 let triviaGame = new TriviaGame();
-triviaGame.initialize();
