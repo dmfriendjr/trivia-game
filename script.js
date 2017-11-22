@@ -1,11 +1,36 @@
 class TriviaQuestion {
-	constructor(question,answers,correctAnswerIndex) {
+	constructor(question,incorrectAnswers,correctAnswer) {
 		this.question = question;
-		this.answers = answers;
-		this.correctAnswerIndex = correctAnswerIndex;
+		this.answers = incorrectAnswers;
+		this.correctAnswer = correctAnswer;
+		this.correctAnswerIndex;
+		this.randomizeAnswerLocation();	
 	}
 
-	get correctAnswer() {
+	randomizeAnswerLocation() {
+		//Add correct answer to answers array
+		this.answers.push(this.correctAnswer);	
+		if (this.answers.length === 2) {
+			//This question is a true or false, need to do special handling so order doesn't give away answer
+			this.answers[0] = 'True';
+			this.answers[1] = 'False';
+			this.correctAnswerIndex = this.correctAnswer === 'True' ? 0 : 1;
+		}
+		else {
+			//Randomize position of correct answer in the answers array and store the location of answer
+			this.correctAnswerIndex = Math.floor(Math.random() * this.answers.length);
+			//Check if random index was last index, meaing we don't need to swap
+			if (this.correctAnswerIndex !== this.answers.length-1){
+				let answerHolder = this.answers[this.correctAnswerIndex];
+				//Swap correct answer (at last index because of push) with random index
+				this.answers[this.correctAnswerIndex] = this.answers[this.answers.length-1];
+				this.answers[this.answers.length-1] = answerHolder;
+			}
+		}
+		
+	}
+
+	get getCorrectAnswer() {
 		return this.answers[this.correctAnswerIndex];
 	}
 }
@@ -35,7 +60,6 @@ class TriviaGame {
 
 	initialize() {
 		//Add event listeners to answer slots
-		console.log('Initializing');
 		for (let i = 0; i < this.answerSlots.length; i++){
 			$(this.answerSlots[i]).on('click',this.checkAnswer.bind(this));
 		}
@@ -75,32 +99,9 @@ class TriviaGame {
 	populateQuestions(questionsData) {
 		//Iterate over questions data and make a new TriviaQuestion for each question in the data
 		$.each(questionsData, (index, question) => {
-			//Add correct answer to incorrect answers array
-			let answersArray = question.incorrect_answers;
-			answersArray.push(question.correct_answer);
-			let correctAnswerIndex;
-			if (answersArray.length === 2) {
-				//This question is a true or false, need to do special handling so order doesn't give away answer
-				answersArray[0] = 'True';
-				answersArray[1] = 'False';
-				correctAnswerIndex = question.correct_answer === 'True' ? 0 : 1;
-			}
-			else {
-				//Randomize position of correct answer in the answers array and store the location of answer
-				correctAnswerIndex = Math.floor(Math.random() * answersArray.length);
-				//Check if random index was last index, meaing we don't need to swap
-				if (correctAnswerIndex !== answersArray.length-1){
-					let answerHolder = answersArray[correctAnswerIndex];
-					//Swap correct answer (at last index because of push) with random index
-					answersArray[correctAnswerIndex] = answersArray[answersArray.length-1];
-					answersArray[answersArray.length-1] = answerHolder;
-				}
-			}
-
-
 			//Add newly instantiated trivia question object to questions array	
 			this.questionsList.push(new TriviaQuestion(question.question,
-				answersArray,correctAnswerIndex));				
+				question.incorrect_answers,question.correct_answer));				
 		});
 
 		//Now in the questionPhase
@@ -227,7 +228,7 @@ class TriviaGame {
 			return; 	
 		}
 
-		if (event.target.innerHTML === this.questionsList[this.questionIndex].correctAnswer) {
+		if (event.target.innerHTML === this.questionsList[this.questionIndex].getCorrectAnswer) {
 			event.target.classList.add('correct-answer');
 			this.updateMessageDisplay('That\'s Correct!');
 			this.numberCorrectAnswers++;
@@ -237,6 +238,7 @@ class TriviaGame {
 			this.answerSlots[this.questionsList[this.questionIndex].correctAnswerIndex].classList.add('correct-answer');
 			this.numberIncorrectAnswers++;
 		}
+
 
 		//Answer has been clicked 
 		this.answerPicked = true;
