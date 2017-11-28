@@ -19,33 +19,39 @@
 </head>
 
 <body>
-	<h1 class="title-text">Categorical Knowledge</h1>
-	<div id="loading-screen">
-		<h2>Loading</h2>
-		<i class="fa fa-spinner fa-pulse fa-5x" aria-hidden="true"></i>
-	</div>
-	<div class='question-wrapper'>
-		<div id="message-display"></div>
-		<div id='question-timer-display'></div>
-		<div id='question-display'></div>
-		<div id='answers-display'>
-			<div class="answer-option"></div>	
-			<div class="answer-option"></div>	
-			<div class="answer-option"></div>	
-			<div class="answer-option"></div>	
+	<div class="content">
+		<h1 class="title-text">Categorical Knowledge</h1>
+		<div id="loading-screen">
+			<h2>Loading</h2>
+			<i class="fa fa-spinner fa-pulse fa-5x" aria-hidden="true"></i>
 		</div>
-	</div>
+		<div class='question-wrapper'>
+			<div id="message-display"></div>
+			<div id='question-timer-display'></div>
+			<div id='question-display'></div>
+			<div id='answers-display'>
+				<div class="answer-option"></div>	
+				<div class="answer-option"></div>	
+				<div class="answer-option"></div>	
+				<div class="answer-option"></div>	
+			</div>
+		</div>
 
-	<div id="categories-wrapper"></div>
+		<div id="categories-wrapper"></div>
 
-	<div id='score-screen-wrapper'>
-		<p>Correct Answers</p>
-		<p id="correct-answers-display"></p>
-		<p>Incorrect Answers</p>
-		<p id="incorrect-answers-display"></p>
-		<input type="button" value="Restart" id="restart-button">
+		<div id='score-screen-wrapper'>
+			<p>Correct Answers</p>
+			<p id="correct-answers-display"></p>
+			<p>Incorrect Answers</p>
+			<p id="incorrect-answers-display"></p>
+			<input type="button" value="Restart" id="restart-button">
+		</div>
+		<script src="./assets/scripts/script.js"></script>
 	</div>
-	<script src="./assets/scripts/script.js"></script>
+	<footer>
+		<p>&copy 2017 David Friend</p>
+		<p>Powered by <a href="https://opentdb.com/" target='blank'>Open Trivia Database</a></p>
+	</footer>
 </body>
 
 </html>
