@@ -62,6 +62,8 @@ class TriviaGame {
 		//Score data storage
 		this.numberIncorrectAnswers = 0;
 		this.numberCorrectAnswers = 0;
+		//Session token for API
+		this.sessionToken;
 		//Initialize game
 		this.initialize();
 	}
@@ -74,10 +76,16 @@ class TriviaGame {
 		}
 		//Add event listener to restart button
 		$('#restart-button').on('click', this.resetGame.bind(this));
-		//Begin categories http request
-		this.requestCategoriesData();
+
 		//Show loading screen
 		this.updateGameState('loadingPhase');
+		
+		//Get session token, store once returned
+		this.httpGetAsync('https://opentdb.com/api_token.php?command=request', (response) => {
+			this.sessionToken = response.token;
+			//Begin categories http request
+			this.requestCategoriesData();
+		});
 	}
 	
 	//This uses an async operation to request and wait for response from requested url
@@ -90,9 +98,19 @@ class TriviaGame {
 	
 	//Request async the questions data and process response when ready
 	requestQuestionsData(categoryId) {
-		this.httpGetAsync(`https://opentdb.com/api.php?amount=10&category=${categoryId}`, (response) => {
-			let questionsData = response.results;
-			this.populateQuestions(questionsData);
+		this.httpGetAsync(`https://opentdb.com/api.php?amount=10&category=${categoryId}&token=${this.sessionToken}`, (response) => {
+			//Success: Response was successful, populate questions
+			if (response.response_code === 0) {
+				let questionsData = response.results;
+				this.populateQuestions(questionsData);
+			}
+			//Token Empty: Session token used all questions for category, reset token and re-request questions
+			if (response.response_code === 4) {
+				this.httpGetAsync(`https://opentdb.com/api_token.php?command=reset&token=${this.sessionToken}`, (response) => { 
+					//Token has been reset, request questions again
+					this.requestQuestionsData(categoryId);
+				});
+			}
 		}); 
 	}
 	
@@ -224,16 +242,8 @@ class TriviaGame {
 
 		//Answer has been clicked 
 		this.answerPicked = true;
-		//Determine if we want to advance to the next question (ie there are questions left)
-		//Have to do length-1 here since questionsIndex gets incremented by nextQuestion()
-		if (this.questionIndex < this.questionsList.length-1){	
-			//do a small delay then advance to next question and reset answer styles
-			this.nextQuestionTimerStart();
-		} else {
-			//No questions left, clear question interval, update game state after delay
-			clearInterval(this.questionTimerInterval);
-			setTimeout(this.updateGameState.bind(this,'scoreScreenPhase'),2000);
-		}
+		//Start countdown to move to next question
+		this.nextQuestionTimerStart();
 	}	
 	
 	//Advances question index and displays next question content in HTML
@@ -267,34 +277,7 @@ class TriviaGame {
 			$(this.answerSlots[3]).show();
 		}
 	}
-
-	//Starts timer interval for question time limit
-	nextQuestionTimerStart() { 
-		//Clear question timer interval
-		clearInterval(this.questionTimerInterval);
-		//Give 2 seconds before resetting answer styling and going to next question
-		setTimeout(this.resetAnswerStyles.bind(this), 2000);
-		setTimeout(this.nextQuestion.bind(this), 2000);
-	}	
-
-	//Called when question timer ends. Shows correct answer and goes to next question
-	questionTimeElapsed() {
-		//Display correct answer and times up message
-		this.updateMessageDisplay('Time\'s Up!');
-		this.answerSlots[this.questionsList[this.questionIndex].correctAnswerIndex].classList.add('correct-answer');
-		//Count as wrong since ran out of time
-		this.numberIncorrectAnswers++;
-		this.nextQuestionTimerStart();
-	}
-
-	//Removes CSS styles from all answer slots for correct/incorrect answers
-	resetAnswerStyles() {
-		$.each(this.answerSlots, (index, slot) => {
-			$(slot).removeClass('correct-answer');
-			$(slot).removeClass('incorrect-answer');
-		});
-	}
-
+	
 	//Callback for question timer interval, updates time and checks if time up
 	updateQuestionTimer() {
 		this.questionTimer--;
@@ -303,6 +286,41 @@ class TriviaGame {
 			//Times up, move to next question
 			this.questionTimeElapsed();
 		}
+	}
+
+	//Called when question timer ends. Shows correct answer and goes to next question
+	questionTimeElapsed() {
+		//Display correct answer and times up message
+		this.updateMessageDisplay('Time\'s Up!');
+		this.answerSlots[this.questionsList[this.questionIndex].correctAnswerIndex].classList.add('correct-answer');
+		//Count as wrong since ran out of time
+		this.numberIncorrectAnswers++;
+		//Move to next question
+		this.nextQuestionTimerStart();
+	}
+
+	//Starts timer interval for delay between questions and advances to next if there are more questions
+	nextQuestionTimerStart() { 
+		//Clear question timer interval
+		clearInterval(this.questionTimerInterval);
+		//Clear answer styles after 2 second delay
+		setTimeout(this.resetAnswerStyles.bind(this), 2000);
+		//Move to next question if questions are left, else display score screen
+		if (this.questionIndex < this.questionsList.length-1) {
+			//Give 2 seconds before going to next question
+			setTimeout(this.nextQuestion.bind(this), 2000);
+		} else {
+			//No questions left, update game state to scoreScreenPhase after 2 second delay
+			setTimeout(this.updateGameState.bind(this,'scoreScreenPhase'),2000);
+		}
+	}	
+
+	//Removes CSS styles from all answer slots for correct/incorrect answers
+	resetAnswerStyles() {
+		$.each(this.answerSlots, (index, slot) => {
+			$(slot).removeClass('correct-answer');
+			$(slot).removeClass('incorrect-answer');
+		});
 	}
 
 	//Updates displayed message, used for win/loss/time up conditions
