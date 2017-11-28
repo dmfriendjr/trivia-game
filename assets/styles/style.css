@@ -84,9 +84,18 @@ body {
 	background-color: #FF4E42 !important;
 }
 
+#correct-answers-display,
+#incorrect-answers-display {
+	margin: 15px 0;
+}
+
 #restart-button {
-	background-color: #46FF53;
-	border: 2px solid black;
+	background-color: #3BE8E8;
+	border: 2px solid #073440;
+	width: 100px;
+	height: 50px;
+	font-size: 20px;
+	margin: 20px 0;
 }
 
 
