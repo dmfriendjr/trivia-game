@@ -154,11 +154,6 @@ class TriviaGame {
 				}
 			});
 			
-			//This is used by the CSS to align multi-line category names vertically in wrapper
-			let categoryOptionPusher = $('<p>', {
-				"class": 'category-option-pusher'
-			});
-
 			//Create category option content
 			let categoryOption = $('<p>', {
 				"class": 'category-option',
@@ -166,7 +161,6 @@ class TriviaGame {
 				text: category.name.indexOf(':') === -1 ? category.name : category.name.split(': ')[1],
 			});
 			//Append content to wrapper, and wrapper to display 
-			categoryWrapper.append(categoryOptionPusher);
 			categoryWrapper.append(categoryOption);
 			this.categoriesContainer.append(categoryWrapper);
 		});
